@@ -38,9 +38,14 @@ public class Producto {
     @Column(name = "stock_minimo")
     private Integer stockMinimo = 3;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "proveedor_id", referencedColumnName = "id", nullable = true)
-    private Proveedor proveedor;
+    @ManyToOne(fetch = FetchType.LAZY)  // Recomiendo LAZY si no siempre necesitas la importadora
+    @JoinColumn(name = "importadora_id")
+    private Importadora importadora;
+
+    // Si aún no tienes la tabla/columna para proveedor, comenta o elimina este bloque temporalmente
+    //@ManyToOne(fetch = FetchType.LAZY)
+    //@JoinColumn(name = "proveedor_id", nullable = true)
+    //private Proveedor proveedor;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -52,7 +52,6 @@ public class ProductoController {
                     producto.setPrecioVenta(detallesProducto.getPrecioVenta());
                     producto.setStock(detallesProducto.getStock());
                                         producto.setStockMinimo(detallesProducto.getStockMinimo());
-                    producto.setProveedor(detallesProducto.getProveedor());
                     Producto actualizado = productoRepository.save(producto);
                     return ok().body(actualizado);
                 }).orElse(ResponseEntity.notFound().build());
