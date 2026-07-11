@@ -6,8 +6,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@Table(name = "inventario_productos")
 @Entity
+@Table(name = "productos")
 public class Producto {
 
     @Id
@@ -33,25 +33,36 @@ public class Producto {
     private BigDecimal precioVenta;
 
     @Column(nullable = false)
-    private Integer stock;
+    private Integer stock = 0;
 
     @Column(name = "stock_minimo")
     private Integer stockMinimo = 3;
 
-    @ManyToOne(fetch = FetchType.LAZY)  // Recomiendo LAZY si no siempre necesitas la importadora
+    @Column(name = "unidad_medida", length = 20)
+    private String unidadMedida = "unidad";
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "importadora_id")
     private Importadora importadora;
 
-    // Si aún no tienes la tabla/columna para proveedor, comenta o elimina este bloque temporalmente
-    //@ManyToOne(fetch = FetchType.LAZY)
-    //@JoinColumn(name = "proveedor_id", nullable = true)
-    //private Proveedor proveedor;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "proveedor_id")
+    private Proveedor proveedor;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }

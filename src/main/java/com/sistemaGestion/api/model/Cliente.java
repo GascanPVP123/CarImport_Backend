@@ -6,24 +6,23 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "importadoras")
-public class Importadora {
-
+@Table(name = "clientes")
+public class Cliente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 11, unique = true, nullable = false)
-    private String ruc;
+    @Column(nullable = false, length = 150)
+    private String nombre;
 
-    @Column(name = "razon_social", nullable = false, length = 150)
-    private String razonSocial;
-
-    @Column(length = 20)
-    private String telefono;
+    @Column(length = 20, unique = true)
+    private String documento;
 
     @Column(length = 200)
     private String direccion;
+
+    @Column(length = 20)
+    private String telefono;
 
     @Column(length = 100)
     private String email;
