@@ -1,5 +1,6 @@
 package com.sistemaGestion.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -43,6 +44,7 @@ public class Producto {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "importadora_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Importadora importadora;
 
     @ManyToOne(fetch = FetchType.LAZY)

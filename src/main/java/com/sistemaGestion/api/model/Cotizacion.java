@@ -1,5 +1,6 @@
 package com.sistemaGestion.api.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -64,6 +65,7 @@ public class Cotizacion {
     @Column(columnDefinition = "TEXT")
     private String observaciones;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "cotizacion", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetalleCotizacion> detalles = new ArrayList<>();
 
@@ -83,4 +85,6 @@ public class Cotizacion {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+
 }

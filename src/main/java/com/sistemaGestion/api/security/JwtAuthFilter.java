@@ -26,20 +26,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     FilterChain chain) throws ServletException, IOException {
 
         String path = request.getServletPath();
+        String header = request.getHeader("Authorization");
 
-        // No aplicar filtro a rutas de autenticación
+        System.out.println("Path: " + path + " | Auth header: " + header);
+
+        // Ignorar rutas de autenticación
         if (path.startsWith("/api/auth/")) {
+            System.out.println("Ruta pública, sin filtro");
             chain.doFilter(request, response);
             return;
         }
 
-        String header = request.getHeader("Authorization");
-
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
+            System.out.println("Token recibido: " + token.substring(0, 20) + "...");
 
             if (jwtUtil.validateToken(token)) {
                 String username = jwtUtil.extractUsername(token);
+                System.out.println("Token válido. Usuario: " + username);
 
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(
@@ -47,7 +51,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         );
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);
+            } else {
+                System.out.println("Token inválido");
             }
+        } else {
+            System.out.println("Sin token o mal formado");
         }
 
         chain.doFilter(request, response);
