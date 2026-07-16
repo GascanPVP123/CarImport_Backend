@@ -61,11 +61,12 @@ public class ProductoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        if (productoRepository.existsById(id)) {
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
+        try {
             productoRepository.deleteById(id);
             return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al eliminar: " + e.getMessage());
         }
-        return ResponseEntity.notFound().build();
     }
 }
