@@ -52,6 +52,8 @@ public class CotizacionController {
         return ResponseEntity.ok(cotizacionService.cambiarEstado(id, estado));
     }
 
+    
+
     // Convertir cotización a pedido
     @PostMapping("/{id}/convertir")
     public ResponseEntity<?> convertirAPedido(@PathVariable Long id) {

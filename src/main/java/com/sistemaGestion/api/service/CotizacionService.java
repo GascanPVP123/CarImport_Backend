@@ -20,18 +20,15 @@ public class CotizacionService {
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
 
-    // Listar todas las cotizaciones
     public List<Cotizacion> listar() {
         return cotizacionRepository.findAll();
     }
 
-    // Obtener cotización por ID
     public Cotizacion obtener(Long id) {
         return cotizacionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cotización no encontrada"));
     }
 
-    // Crear cotización (NO descuenta stock)
     @Transactional
     public Cotizacion crear(CotizacionRequest request, String username) {
         Cliente cliente = clienteRepository.findById(request.getClienteId())
@@ -78,33 +75,23 @@ public class CotizacionService {
             cotizacion.getDetalles().add(detalle);
         }
 
-        BigDecimal baseImponible = subtotal.subtract(totalDescuento);
-        BigDecimal igv = baseImponible.multiply(new BigDecimal("0.18"));
-        BigDecimal total = baseImponible.add(igv);
-
+        BigDecimal total = subtotal.subtract(totalDescuento);
         cotizacion.setSubtotal(subtotal);
         cotizacion.setDescuento(totalDescuento);
-        cotizacion.setIgv(igv);
+        cotizacion.setIgv(BigDecimal.ZERO);
         cotizacion.setTotal(total);
 
-        // Generar número de cotización
-        cotizacion.setCorrelativo((int)(cotizacionRepository.count() + 1));
+        cotizacion.setCorrelativo((int) (cotizacionRepository.count() + 1));
         cotizacion.setNumero("COT-" + String.format("%06d", cotizacion.getCorrelativo()));
 
         return cotizacionRepository.save(cotizacion);
     }
 
-    // Actualizar cotización
     @Transactional
     public Cotizacion actualizar(Long id, CotizacionRequest request) {
         Cotizacion cotizacion = obtener(id);
 
-        if (!cotizacion.getEstado().equals("BORRADOR")) {
-            throw new RuntimeException("Solo se pueden editar cotizaciones en estado BORRADOR");
-        }
-
         cotizacion.getDetalles().clear();
-
         cotizacion.setFechaVencimiento(request.getFechaVencimiento());
         cotizacion.setCondicionPago(request.getCondicionPago());
         cotizacion.setMoneda(request.getMoneda());
@@ -134,23 +121,18 @@ public class CotizacionService {
 
             subtotal = subtotal.add(det.getPrecioUnitario().multiply(BigDecimal.valueOf(det.getCantidad())));
             totalDescuento = totalDescuento.add(detalle.getDescuento());
-
             cotizacion.getDetalles().add(detalle);
         }
 
-        BigDecimal baseImponible = subtotal.subtract(totalDescuento);
-        BigDecimal igv = baseImponible.multiply(new BigDecimal("0.18"));
-        BigDecimal total = baseImponible.add(igv);
-
+        BigDecimal total = subtotal.subtract(totalDescuento);
         cotizacion.setSubtotal(subtotal);
         cotizacion.setDescuento(totalDescuento);
-        cotizacion.setIgv(igv);
+        cotizacion.setIgv(BigDecimal.ZERO);
         cotizacion.setTotal(total);
 
         return cotizacionRepository.save(cotizacion);
     }
 
-    // Cambiar estado
     @Transactional
     public Cotizacion cambiarEstado(Long id, String nuevoEstado) {
         Cotizacion cotizacion = obtener(id);
@@ -158,27 +140,15 @@ public class CotizacionService {
         return cotizacionRepository.save(cotizacion);
     }
 
-    // Convertir a pedido
     @Transactional
     public Long convertirAPedido(Long id) {
         Cotizacion cotizacion = obtener(id);
-
         if (!cotizacion.getEstado().equals("APROBADA")) {
             throw new RuntimeException("Solo se pueden convertir cotizaciones APROBADAS");
         }
-
-        // Aquí crearías el pedido (pendiente de implementar)
-        // Pedido pedido = new Pedido();
-        // pedido.setCotizacion(cotizacion);
-        // ...
-
-        cotizacion.setEstado("APROBADA");
-        cotizacionRepository.save(cotizacion);
-
-        return 1L; // Temporal: retornar ID del pedido creado
+        return 1L;
     }
 
-    // Duplicar cotización
     @Transactional
     public Cotizacion duplicar(Long id) {
         Cotizacion original = obtener(id);
@@ -209,7 +179,7 @@ public class CotizacionService {
 
         duplicada.setSubtotal(original.getSubtotal());
         duplicada.setDescuento(original.getDescuento());
-        duplicada.setIgv(original.getIgv());
+        duplicada.setIgv(BigDecimal.ZERO);
         duplicada.setTotal(original.getTotal());
         duplicada.setCorrelativo((int) (cotizacionRepository.count() + 1));
         duplicada.setNumero("COT-" + String.format("%06d", duplicada.getCorrelativo()));
@@ -217,7 +187,6 @@ public class CotizacionService {
         return cotizacionRepository.save(duplicada);
     }
 
-    // Eliminar cotización
     @Transactional
     public void eliminar(Long id) {
         Cotizacion cotizacion = obtener(id);
