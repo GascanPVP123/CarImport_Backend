@@ -39,7 +39,8 @@ public class NotaVenta {
     private Usuario usuario;
 
     @Column(name = "fecha_emision", nullable = false)
-    private LocalDate fechaEmision;
+    private LocalDateTime fechaEmision;
+
 
     @Column(name = "condicion_pago", length = 20)
     private String condicionPago = "CONTADO";

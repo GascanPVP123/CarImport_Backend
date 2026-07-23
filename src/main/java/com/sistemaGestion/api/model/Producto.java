@@ -27,11 +27,17 @@ public class Producto {
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(name = "precio_compra", nullable = false, precision = 10, scale = 2)
-    private BigDecimal precioCompra;
+    @Column(name = "precio_compra", precision = 10, scale = 2)
+    private BigDecimal precioCompra = BigDecimal.ZERO;
 
-    @Column(name = "precio_venta", nullable = false, precision = 10, scale = 2)
-    private BigDecimal precioVenta;
+    @Column(name = "precio_venta", precision = 10, scale = 2)
+    private BigDecimal precioVenta = BigDecimal.ZERO;
+
+    @Column(name = "precio_menor", precision = 10, scale = 2)
+    private BigDecimal precioMenor = BigDecimal.ZERO;
+
+    @Column(name = "precio_mayor", precision = 10, scale = 2)
+    private BigDecimal precioMayor = BigDecimal.ZERO;
 
     @Column(nullable = false)
     private Integer stock = 0;
@@ -59,12 +65,27 @@ public class Producto {
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+
+        // Aseguramos que ningún valor numérico se envíe como NULL a la BD
+        if (this.precioCompra == null) this.precioCompra = BigDecimal.ZERO;
+        if (this.precioVenta == null) this.precioVenta = BigDecimal.ZERO;
+        if (this.precioMayor == null) this.precioMayor = BigDecimal.ZERO;
+        if (this.precioMenor == null) this.precioMenor = BigDecimal.ZERO;
+        if (this.stock == null) this.stock = 0;
+        if (this.stockMinimo == null) this.stockMinimo = 3;
     }
 
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+
+        // 🟢 Asegurar Mayúsculas al actualizar
+        if (this.codigoSku != null) {
+            this.codigoSku = this.codigoSku.trim().toUpperCase();
+        }
     }
+
 }

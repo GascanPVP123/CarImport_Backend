@@ -11,4 +11,6 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     List<Producto> findByStockLessThanEqual(Integer stockMinimo);
     List<Producto> findByImportadoraId(Long importadoraId);
     List<Producto> findByProveedorId(Long proveedorId);
+
+    boolean existsByCodigoSku(String codigoSku);
 }
