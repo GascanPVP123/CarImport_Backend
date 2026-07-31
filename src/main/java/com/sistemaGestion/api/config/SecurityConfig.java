@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .anyRequest().permitAll()
+                        .anyRequest().permitAll() // Nota: Cuando tu app esté terminada, cambia esto a .authenticated() para proteger tus rutas
                 );
 
         return http.build();
@@ -42,10 +42,21 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(Arrays.asList("*"));
+
+        // 1. Especificar los orígenes exactos en lugar de "*"
+        config.setAllowedOrigins(Arrays.asList(
+                "https://car-import-frontend.vercel.app", // Tu dominio en producción
+                "http://localhost:3000"                   // Para que no se rompa cuando pruebes en tu PC
+        ));
+
+        // 2. Métodos permitidos
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("*"));
-        config.setAllowCredentials(false);
+
+        // 3. Especificar las cabeceras clave explícitamente
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
+
+        // 4. Habilitar credenciales (Requerido cuando configuras orígenes específicos)
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
