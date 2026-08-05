@@ -4,11 +4,12 @@ import com.sistemaGestion.api.dto.NotaVentaRequest;
 import com.sistemaGestion.api.model.*;
 import com.sistemaGestion.api.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,16 +23,16 @@ public class NotaVentaService {
     private final UsuarioRepository usuarioRepository;
     private final CotizacionRepository cotizacionRepository;
 
-    /**
-     * Crear una nueva Nota de Venta y descontar stock
-     */
     @Transactional
     public NotaVenta crear(NotaVentaRequest request) {
         Cliente cliente = clienteRepository.findById(request.getClienteId())
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
-        Usuario usuario = usuarioRepository.findByUsername("admin")
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        // ✅ Obtener usuario del token JWT
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        Usuario usuario = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
 
         NotaVenta nota = new NotaVenta();
         nota.setCliente(cliente);
@@ -52,7 +53,6 @@ public class NotaVentaService {
             Producto producto = productoRepository.findById(det.getProductoId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
-            // Validar y Descontar stock
             if (producto.getStock() < det.getCantidad()) {
                 throw new RuntimeException("Stock insuficiente para: " + producto.getNombre());
             }
@@ -69,7 +69,6 @@ public class NotaVentaService {
             detalle.setPrecioUnitario(det.getPrecioUnitario());
             detalle.setDescuento(det.getDescuento() != null ? det.getDescuento() : BigDecimal.ZERO);
 
-            // Importe = precio * cantidad - descuento
             BigDecimal importe = det.getPrecioUnitario()
                     .multiply(BigDecimal.valueOf(det.getCantidad()))
                     .subtract(detalle.getDescuento());
@@ -86,26 +85,17 @@ public class NotaVentaService {
         return notaVentaRepository.save(nota);
     }
 
-    /**
-     * Obtener el historial de todas las notas de venta ordenadas desde la más reciente
-     */
     @Transactional(readOnly = true)
     public List<NotaVenta> obtenerHistorial() {
         return notaVentaRepository.findAllByOrderByFechaEmisionDesc();
     }
 
-    /**
-     * Obtener una nota de venta específica por ID
-     */
     @Transactional(readOnly = true)
     public NotaVenta obtenerPorId(Long id) {
         return notaVentaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Nota de venta no encontrada con ID: " + id));
     }
 
-    /**
-     * Anular Nota de Venta y Restaurar el stock de los productos
-     */
     @Transactional
     public void anular(Long id) {
         NotaVenta nota = obtenerPorId(id);
@@ -114,7 +104,6 @@ public class NotaVentaService {
             throw new RuntimeException("La nota de venta ya se encuentra anulada.");
         }
 
-        // Restablecer el stock a los productos
         for (DetalleNotaVenta detalle : nota.getDetalles()) {
             Producto producto = detalle.getProducto();
             if (producto != null) {
