@@ -48,11 +48,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(Arrays.asList(
-                "https://car-import-frontend.vercel.app",
-                "https://car-import-frontend-*.vercel.app",
-                "http://localhost:3000"
-        ));
+        config.setAllowedOriginPatterns(Arrays.asList("*"));
         // Permitimos cualquier cabecera (Authorization, Content-Type, etc.)
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
