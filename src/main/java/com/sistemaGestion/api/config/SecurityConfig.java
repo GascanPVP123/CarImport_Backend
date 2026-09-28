@@ -29,7 +29,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Ya no usamos el .cors() aquí, el filtro de máxima prioridad se encarga antes
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -41,23 +40,21 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ESTA ES LA CLAVE: Un filtro de CORS que se ejecuta antes que cualquier otra cosa
     @Bean
     public FilterRegistrationBean<CorsFilter> corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowCredentials(true);
+        // ⚠️ Con allowCredentials=true NO se puede usar "*" como origen
+        // Usamos allowCredentials=false porque usamos JWT en headers (no cookies)
+        config.setAllowCredentials(false);
         config.setAllowedOriginPatterns(Arrays.asList("*"));
-        // Permitimos cualquier cabecera (Authorization, Content-Type, etc.)
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 
         source.registerCorsConfiguration("/**", config);
 
         FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
-
-        // ORDEN DE MÁXIMA PRIORIDAD
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return bean;
     }
