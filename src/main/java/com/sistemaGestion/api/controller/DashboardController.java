@@ -7,7 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/dashboard")
+// Acepta ambas rutas para ser 100% compatible con tus otros servicios
+@RequestMapping({"/api/dashboard", "/api/v1/dashboard"})
 @RequiredArgsConstructor
 public class DashboardController {
 
