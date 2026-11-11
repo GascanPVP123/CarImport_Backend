@@ -32,7 +32,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/auth/**").permitAll() 
+                        // Permitir autenticación con y sin prefijo /api
+                        .requestMatchers("/api/auth/**", "/auth/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().permitAll()
                 );
@@ -45,9 +46,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        // ⚠️ Con allowCredentials=true NO se puede usar "*" como origen
-        // Usamos allowCredentials=false porque usamos JWT en headers (no cookies)
-        config.setAllowCredentials(false);
+        config.setAllowCredentials(true);
         config.setAllowedOriginPatterns(Arrays.asList("*"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
@@ -55,6 +54,8 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
 
         FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
+
+        // ORDEN DE MÁXIMA PRIORIDAD
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return bean;
     }
