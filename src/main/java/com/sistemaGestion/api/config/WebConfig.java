@@ -9,8 +9,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void configurePathMatch(PathMatchConfigurer configurer) {
-        // Aplica el prefijo /api opcionalmente a todos los RestController
-        // Permitiendo que /dashboard/ejecutivo y /api/dashboard/ejecutivo apunten al mismo controlador
+        // Hace que los controladores escuchen tanto con /api como sin /api
         configurer.addPathPrefix("/api", c -> true);
     }
 }
