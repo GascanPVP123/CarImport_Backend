@@ -6,6 +6,8 @@ import com.sistemaGestion.api.dto.ResumenCuentasDTO;
 import com.sistemaGestion.api.dto.SaldoTiendaDTO;
 import com.sistemaGestion.api.model.*;
 import com.sistemaGestion.api.repository.*;
+import com.sistemaGestion.api.exception.NoAutenticadoException;
+import com.sistemaGestion.api.security.UsuarioActual;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +24,7 @@ public class CuentaCorrienteController {
 
     private final CuentaCorrienteRepository cuentaCorrienteRepository;
     private final TiendaAliadaRepository tiendaAliadaRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final UsuarioActual usuarioActual;
     private final ClienteRepository clienteRepository;
     private final NotaVentaRepository notaVentaRepository;
     private final PedidoRepository pedidoRepository;
@@ -30,13 +32,13 @@ public class CuentaCorrienteController {
     public CuentaCorrienteController(
             CuentaCorrienteRepository cuentaCorrienteRepository,
             TiendaAliadaRepository tiendaAliadaRepository,
-            UsuarioRepository usuarioRepository,
+            UsuarioActual usuarioActual,
             ClienteRepository clienteRepository,
             NotaVentaRepository notaVentaRepository,
             PedidoRepository pedidoRepository) {
         this.cuentaCorrienteRepository = cuentaCorrienteRepository;
         this.tiendaAliadaRepository = tiendaAliadaRepository;
-        this.usuarioRepository = usuarioRepository;
+        this.usuarioActual = usuarioActual;
         this.clienteRepository = clienteRepository;
         this.notaVentaRepository = notaVentaRepository;
         this.pedidoRepository = pedidoRepository;
@@ -129,9 +131,7 @@ public class CuentaCorrienteController {
                         .body(Map.of("error", "Debe indicar tiendaId o clienteId"));
             }
 
-            // TODO: tomar el usuario autenticado del SecurityContext en lugar del id fijo
-            Usuario usuario = usuarioRepository.findById(1L)
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            Usuario usuario = usuarioActual.obtener();
 
             CuentaCorriente movimiento = new CuentaCorriente();
             if (request.getTiendaId() != null) {
@@ -162,6 +162,9 @@ public class CuentaCorrienteController {
             CuentaCorriente guardado = cuentaCorrienteRepository.save(movimiento);
             return ResponseEntity.status(HttpStatus.CREATED).body(MovimientoResponseDTO.from(guardado));
 
+        } catch (NoAutenticadoException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Tipo u origen inválido: " + e.getMessage()));

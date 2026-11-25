@@ -51,12 +51,9 @@ public class AuthService {
         Usuario usuario = usuarioRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        log.info("Usuario encontrado: {}", usuario.getUsername());
-        log.info("Password en BD: {}", usuario.getPassword());
-        log.info("Password recibido: {}", request.getPassword());
-
+        // Nunca registrar contraseñas ni hashes en los logs.
         boolean matches = passwordEncoder.matches(request.getPassword(), usuario.getPassword());
-        log.info("¿Coinciden las contraseñas?: {}", matches);
+        log.info("Login de '{}': {}", usuario.getUsername(), matches ? "OK" : "credenciales inválidas");
 
         if (!matches) {
             throw new RuntimeException("Credenciales inválidas");

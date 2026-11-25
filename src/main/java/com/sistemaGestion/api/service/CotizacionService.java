@@ -19,6 +19,7 @@ public class CotizacionService {
     private final ClienteRepository clienteRepository;
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final PedidoService pedidoService;
 
     public List<Cotizacion> listar() {
         return cotizacionRepository.findAll();
@@ -140,13 +141,10 @@ public class CotizacionService {
         return cotizacionRepository.save(cotizacion);
     }
 
+    /** Crea el pedido de una cotización APROBADA y devuelve su id (ver PedidoService). */
     @Transactional
     public Long convertirAPedido(Long id) {
-        Cotizacion cotizacion = obtener(id);
-        if (!cotizacion.getEstado().equals("APROBADA")) {
-            throw new RuntimeException("Solo se pueden convertir cotizaciones APROBADAS");
-        }
-        return 1L;
+        return pedidoService.crearDesdeCotizacion(id).getId();
     }
 
     @Transactional

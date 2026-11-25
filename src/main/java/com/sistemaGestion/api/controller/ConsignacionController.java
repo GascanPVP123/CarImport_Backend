@@ -5,6 +5,8 @@ import com.sistemaGestion.api.dto.DevolucionConsignacionRequest;
 import com.sistemaGestion.api.dto.VentaConsignacionRequest;
 import com.sistemaGestion.api.model.*;
 import com.sistemaGestion.api.repository.*;
+import com.sistemaGestion.api.exception.NoAutenticadoException;
+import com.sistemaGestion.api.security.UsuarioActual;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +27,7 @@ public class ConsignacionController {
     private final ProductoRepository productoRepository;
     private final VentaConsignacionRepository ventaConsignacionRepository;
     private final DevolucionConsignacionRepository devolucionConsignacionRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final UsuarioActual usuarioActual;
     private final CuentaCorrienteRepository cuentaCorrienteRepository;
 
     public ConsignacionController(
@@ -34,14 +36,14 @@ public class ConsignacionController {
             ProductoRepository productoRepository,
             VentaConsignacionRepository ventaConsignacionRepository,
             DevolucionConsignacionRepository devolucionConsignacionRepository,
-            UsuarioRepository usuarioRepository,
+            UsuarioActual usuarioActual,
             CuentaCorrienteRepository cuentaCorrienteRepository) {
         this.consignacionRepository = consignacionRepository;
         this.tiendaAliadaRepository = tiendaAliadaRepository;
         this.productoRepository = productoRepository;
         this.ventaConsignacionRepository = ventaConsignacionRepository;
         this.devolucionConsignacionRepository = devolucionConsignacionRepository;
-        this.usuarioRepository = usuarioRepository;
+        this.usuarioActual = usuarioActual;
         this.cuentaCorrienteRepository = cuentaCorrienteRepository;
     }
 
@@ -113,8 +115,7 @@ public class ConsignacionController {
             String numero = String.format("CONS-%06d", correlativo);
 
             // Obtener usuario
-            Usuario usuario = usuarioRepository.findById(1L)
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            Usuario usuario = usuarioActual.obtener();
 
             // Crear consignación
             Consignacion consignacion = new Consignacion();
@@ -153,6 +154,9 @@ public class ConsignacionController {
             Consignacion guardada = consignacionRepository.save(consignacion);
             return ResponseEntity.status(HttpStatus.CREATED).body(guardada);
 
+        } catch (NoAutenticadoException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage()));
@@ -181,8 +185,7 @@ public class ConsignacionController {
                                 " y no se pueden registrar ventas"));
             }
 
-            Usuario usuario = usuarioRepository.findById(1L)
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            Usuario usuario = usuarioActual.obtener();
 
             LocalDate fechaVenta = request.getFechaVenta() != null ? request.getFechaVenta() : LocalDate.now();
             BigDecimal comisionPorcentaje = request.getComisionPorcentaje() != null ?
@@ -283,6 +286,9 @@ public class ConsignacionController {
             consignacionRepository.save(consignacion);
             return ResponseEntity.ok(consignacion);
 
+        } catch (NoAutenticadoException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage()));
@@ -311,8 +317,7 @@ public class ConsignacionController {
                                 " y no se pueden registrar devoluciones"));
             }
 
-            Usuario usuario = usuarioRepository.findById(1L)
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            Usuario usuario = usuarioActual.obtener();
 
             LocalDate fechaDevolucion = request.getFechaDevolucion() != null ?
                     request.getFechaDevolucion() : LocalDate.now();
@@ -389,6 +394,9 @@ public class ConsignacionController {
             consignacionRepository.save(consignacion);
             return ResponseEntity.ok(consignacion);
 
+        } catch (NoAutenticadoException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage()));
